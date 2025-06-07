@@ -5,7 +5,6 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -15,18 +14,11 @@ import java.util.Set;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-public class Users {
+public class Role {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-     Long id;
-     String username;
-     String password;
-     String lastName;
-     String firstName;
-     LocalDate dob;
-    @ManyToMany
-     Set<Role> roles;
-
-
-
+     String name;
+     String description;
+     @ManyToMany
+    Set<Permission> permissions;
 }
