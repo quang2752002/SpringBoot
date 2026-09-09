@@ -1,13 +1,13 @@
-package com.example.demo.infrastructure.web.controller;
+package com.example.demo.presentation.controller;
 
 import com.example.demo.application.dto.AuthResponseDto;
 import com.example.demo.application.dto.LoginCommand;
 import com.example.demo.application.dto.RefreshTokenCommand;
 import com.example.demo.application.dto.RegisterUserCommand;
 import com.example.demo.application.service.AuthService;
-import com.example.demo.infrastructure.web.request.LoginRequest;
-import com.example.demo.infrastructure.web.request.RefreshTokenRequest;
-import com.example.demo.infrastructure.web.request.RegisterRequest;
+import com.example.demo.presentation.request.LoginRequest;
+import com.example.demo.presentation.request.RefreshTokenRequest;
+import com.example.demo.presentation.request.RegisterRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

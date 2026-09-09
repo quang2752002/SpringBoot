@@ -34,7 +34,7 @@ public enum Permission {
     Permission(Resource resource, Action action) {
         this.resource = resource;
         this.action = action;
-        this.value = resource.name().toLowerCase() + "_" + action.name().toLowerCase();
+        this.value = resource.name().toLowerCase() + ":" + action.name().toLowerCase();
     }
 
     public String getValue() {

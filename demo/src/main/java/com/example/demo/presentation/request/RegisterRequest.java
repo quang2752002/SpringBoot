@@ -1,4 +1,4 @@
-package com.example.demo.infrastructure.web.request;
+package com.example.demo.presentation.request;
 
 import com.example.demo.domain.model.Role;
 import lombok.AllArgsConstructor;

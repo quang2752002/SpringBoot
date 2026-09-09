@@ -1,10 +1,10 @@
-package com.example.demo.infrastructure.web.controller;
+package com.example.demo.presentation.controller;
 
 import com.example.demo.application.dto.CreateUserCommand;
 import com.example.demo.application.dto.UserResponseDto;
 import com.example.demo.application.service.UserService;
 import com.example.demo.domain.exception.UserNotFoundException;
-import com.example.demo.infrastructure.web.request.CreateUserRequest;
+import com.example.demo.presentation.request.CreateUserRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,18 +21,18 @@ public class UserController {
 
     private final UserService userService;
 
-    // Yêu cầu permission 'user_create' HOẶC role ADMIN/MANAGER
+    // Yêu cầu permission 'user:create' HOẶC role ADMIN/MANAGER
     @PostMapping
-    @PreAuthorize("hasAuthority('user_create')")
+    @PreAuthorize("hasAuthority('user:create')")
     public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody CreateUserRequest request) {
         CreateUserCommand command = new CreateUserCommand(request.getName(), request.getEmail());
         UserResponseDto responseDto = userService.createUser(command);
         return new ResponseEntity<>(responseDto, HttpStatus.CREATED);
     }
 
-    // Yêu cầu permission 'user_read' (tất cả USER, MANAGER, ADMIN đều có)
+    // Yêu cầu permission 'user:read' (tất cả USER, MANAGER, ADMIN đều có)
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('user_read')")
+    @PreAuthorize("hasAuthority('user:read')")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
         UserResponseDto responseDto = userService.getUserById(id);
         return ResponseEntity.ok(responseDto);
@@ -48,7 +48,7 @@ public class UserController {
 
     // Chỉ duy nhất ADMIN mới có quyền xóa
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') and hasAuthority('user_delete')")
+    @PreAuthorize("hasRole('ADMIN') and hasAuthority('user:delete')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
