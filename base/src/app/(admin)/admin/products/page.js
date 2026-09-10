@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { PRODUCTS, CATEGORIES, formatVND } from "@/data/mockData";
+import { useState, useEffect } from "react";
+import { PRODUCTS as MOCK_PRODUCTS, CATEGORIES as MOCK_CATEGORIES, formatVND } from "@/data/mockData";
+import { productService, categoryService } from "@/lib/api";
 import {
   Plus,
   Search,
@@ -14,9 +15,36 @@ import {
 import Link from "next/link";
 
 export default function AdminProductsPage() {
-  const [productsList, setProductsList] = useState(PRODUCTS);
+  const [productsList, setProductsList] = useState(MOCK_PRODUCTS);
+  const [categoriesList, setCategoriesList] = useState(MOCK_CATEGORIES);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [loading, setLoading] = useState(false);
+
+  const fetchProducts = () => {
+    setLoading(true);
+    productService.getAll()
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProductsList(data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Dùng danh sách sản phẩm fallback:", err.message);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    categoryService.getAll()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setCategoriesList([{ id: "all", name: "Tất cả danh mục" }, ...data]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const filtered = productsList.filter((item) => {
     const matchCat =
@@ -27,9 +55,15 @@ export default function AdminProductsPage() {
     return matchCat && matchSearch;
   });
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm("Bạn có chắc chắn muốn xóa sản phẩm này?")) {
-      setProductsList(productsList.filter((p) => p.id !== id));
+      try {
+        await productService.delete(id);
+        setProductsList((prev) => prev.filter((p) => String(p.id) !== String(id)));
+      } catch (err) {
+        // Fallback UI nếu chạy offline
+        setProductsList((prev) => prev.filter((p) => String(p.id) !== String(id)));
+      }
     }
   };
 
@@ -70,16 +104,17 @@ export default function AdminProductsPage() {
           <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
         </div>
 
+        {/* Category Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="h-4 w-4 text-slate-400" />
+          <Filter className="h-4 w-4 text-slate-400 shrink-0" />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="rounded-lg border border-slate-800 bg-slate-900 py-2 px-3 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+            className="rounded-xl border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
           >
-            {CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
+            {categoriesList.map((cat) => (
+              <option key={cat.id} value={cat.id} className="bg-slate-800">
+                {cat.id === "all" && cat.name === "Tất cả" ? "Tất cả danh mục" : cat.name}
               </option>
             ))}
           </select>

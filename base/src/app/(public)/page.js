@@ -1,17 +1,55 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { CATEGORIES, PRODUCTS, formatVND } from "@/data/mockData";
+import { CATEGORIES as MOCK_CATEGORIES, PRODUCTS as MOCK_PRODUCTS, formatVND } from "@/data/mockData";
+import { productService, categoryService } from "@/lib/api";
 import { Star, ShoppingCart, ArrowRight, Sparkles, Shield, Truck, RotateCcw } from "lucide-react";
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [categories, setCategories] = useState(MOCK_CATEGORIES);
+  const [products, setProducts] = useState(MOCK_PRODUCTS);
+  const [loading, setLoading] = useState(false);
 
-  const filteredProducts =
-    selectedCategory === "all"
-      ? PRODUCTS
-      : PRODUCTS.filter((p) => p.category === selectedCategory);
+  // Fetch danh mục từ backend
+  useEffect(() => {
+    categoryService.getAll()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setCategories([{ id: "all", name: "Tất cả" }, ...data]);
+        }
+      })
+      .catch((err) => {
+        console.warn("Dùng dữ liệu danh mục dự phòng:", err.message);
+      });
+  }, []);
+
+  // Fetch danh sách sản phẩm từ backend theo category
+  useEffect(() => {
+    setLoading(true);
+    const params = selectedCategory !== "all" ? { category: selectedCategory } : {};
+    productService.getAll(params)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Dùng dữ liệu sản phẩm dự phòng:", err.message);
+        // Fallback filter trên mockData
+        if (selectedCategory === "all") {
+          setProducts(MOCK_PRODUCTS);
+        } else {
+          setProducts(MOCK_PRODUCTS.filter((p) => p.category === selectedCategory));
+        }
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [selectedCategory]);
+
+  const filteredProducts = products;
 
   return (
     <div className="space-y-12 pb-16">
@@ -128,7 +166,7 @@ export default function HomePage() {
 
           {/* Category Tabs */}
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}

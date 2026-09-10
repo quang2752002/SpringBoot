@@ -1,10 +1,43 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PRODUCTS, formatVND } from "@/data/mockData";
-import { ArrowLeft, Star, ShieldCheck, Truck, RotateCcw, ShoppingCart, Heart } from "lucide-react";
+import { PRODUCTS as MOCK_PRODUCTS, formatVND } from "@/data/mockData";
+import { productService } from "@/lib/api";
+import { ArrowLeft, Star, ShieldCheck, Truck, RotateCcw, ShoppingCart, Heart, Loader2 } from "lucide-react";
 import { notFound } from "next/navigation";
 
 export default function ProductDetailPage({ params }) {
-  const product = PRODUCTS.find((p) => p.id === params.id);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    productService.getById(params.id)
+      .then((data) => {
+        if (data && data.id) {
+          setProduct(data);
+        } else {
+          const fallback = MOCK_PRODUCTS.find((p) => String(p.id) === String(params.id));
+          setProduct(fallback || null);
+        }
+      })
+      .catch(() => {
+        const fallback = MOCK_PRODUCTS.find((p) => String(p.id) === String(params.id));
+        setProduct(fallback || null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [params.id]);
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-20 flex flex-col items-center justify-center text-slate-500">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-3" />
+        <p className="text-sm">Đang tải thông tin sản phẩm...</p>
+      </div>
+    );
+  }
 
   if (!product) {
     return notFound();

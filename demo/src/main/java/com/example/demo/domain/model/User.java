@@ -6,26 +6,56 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Table;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Domain Entity thuần Java - tối ưu với Lombok.
+ * JPA Entity mapping bảng users
  */
+@Entity
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true, length = 100)
     private String username;
+
+    @Column(nullable = false)
     private String password;
+
+    @Column(length = 150)
     private String email;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
     private Role role;
 
+    @ElementCollection(targetClass = Permission.class, fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_direct_permissions", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "permission", length = 50)
     @Builder.Default
     private Set<Permission> directPermissions = new HashSet<>();
 
@@ -44,12 +74,17 @@ public class User {
 
     // Gán thêm quyền riêng cho người này
     public void grantPermission(Permission permission) {
+        if (this.directPermissions == null) {
+            this.directPermissions = new HashSet<>();
+        }
         this.directPermissions.add(permission);
     }
 
     // Thu hồi quyền riêng của người này
     public void revokePermission(Permission permission) {
-        this.directPermissions.remove(permission);
+        if (this.directPermissions != null) {
+            this.directPermissions.remove(permission);
+        }
     }
 
     /**
